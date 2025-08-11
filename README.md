@@ -5,7 +5,7 @@
 1. 将view.html拷贝到Nginx能访问的位置
 2. 部署Onlyoffice Jwt密钥认证后端
    参照 [https://github.com/zhaxingyu/ds-token-gen](https://github.com/zhaxingyu/ds-token-gen)
-3. 配置反向代理，添加以下两个Location
+3. 配置反向代理，在OnlyOffice网址的Nginx反向代理添加以下两个Location
 ```conf
   location = /view.html {
     root /config/onlyoffice;#将此处改为你的view.html所在的位置
