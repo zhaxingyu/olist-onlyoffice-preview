@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnlyOffice Viewer</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #placeholder {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="placeholder"></div>
+    
+    <!-- 需要将OnlyOffice的 API 地址更新到此处 -->
+    <script type="text/javascript" src="https://<你的OnlyOffice地址>/web-apps/apps/api/documents/api.js"></script>
+    
+    <script>
+        // --- 第一步：获取要查看的文件 URL ---
+        function getQueryParamValue(name) {
+            const searchParams = new URLSearchParams(window.location.search);
+            return searchParams.get(name);
+        }
+        const fileUrl = decodeURIComponent(getQueryParamValue("src"));
+        const fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1, fileUrl.lastIndexOf('?') != -1 ? fileUrl.lastIndexOf('?') : fileUrl.length);
+        const fileExtension = fileName.split('.').pop();
+
+        // --- 第二步：向您的后端请求令牌 ---
+        // 假设您的后端服务地址是 /generate-token
+        fetch(`/generate-token?fileUrl=${encodeURIComponent(fileUrl)}`)
+            .then(response => response.json())
+            .then(data => {
+                // --- 第三步：使用从后端获取的配置和令牌来初始化编辑器 ---
+                const docEditor = new DocsAPI.DocEditor("placeholder", {
+                    "document": {
+                        "fileType": fileExtension,
+                        "permissions": {
+                            "edit": false,
+                            "comment": true,
+                            "download": true,
+                            "print": true,
+                            "fillForms": true
+                        },
+                        "title": fileName,
+                        "url": fileUrl
+                    },
+                    "editorConfig": {
+                        "lang": "zh-CN", // 使用更具体的 "zh-CN"
+                        "mode": "view"
+                    },
+                    "height": "100%",
+                    "width": "100%", // 添加了 width 属性
+                    "type": "desktop",
+                    // 关键！把后端生成的令牌放在这里
+                    "token": data.token
+                });
+            })
+            .catch(error => {
+                console.error('获取令牌失败:', error);
+                document.getElementById('placeholder').innerText = '错误：无法加载文档，获取安全令牌失败。';
+            });
+    </script>
+</body>
+</html>
